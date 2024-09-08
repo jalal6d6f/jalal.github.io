@@ -4,18 +4,24 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Model Viewer</title>
+    <title>3D Model Viewer and Activity Log</title>
     <style>
         body { margin: 0; font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; }
         h1 { margin-top: 20px; }
-        #model-container { width: 100vw; height: 80vh; }
+        #model-container { width: 100vw; height: 60vh; }
         canvas { display: block; }
+        #activity-log { margin-top: 20px; max-width: 90vw; text-align: left; }
     </style>
 </head>
 <body>
     <h1>Jalal's Location</h1>
     <div id="model-container"></div>
-    
+
+    <h2>Last 10 Activities</h2>
+    <div id="activity-log">
+        <ul id="activity-list"></ul>
+    </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/OBJLoader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
@@ -25,7 +31,7 @@
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight * 0.8); // 80% height to fit below heading
+        renderer.setSize(window.innerWidth, window.innerHeight * 0.6); // 60% height to fit below heading
         document.getElementById('model-container').appendChild(renderer.domElement);
 
         // Add orbit controls for interactivity
@@ -33,35 +39,25 @@
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
 
-        // Adjusted lighting for better visibility
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.4); // Reduce intensity
+        // Add lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
         scene.add(ambientLight);
 
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5); // Adjust intensity
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
         directionalLight.position.set(10, 10, 10).normalize();
         scene.add(directionalLight);
 
-        const pointLight = new THREE.PointLight(0xffffff, 0.3); // Add a point light with lower intensity
+        const pointLight = new THREE.PointLight(0xffffff, 0.3);
         pointLight.position.set(-5, 5, 5);
         scene.add(pointLight);
 
         // Load the 3D model
         const loader = new THREE.OBJLoader();
         loader.load(
-            'combined_model.obj', // Ensure this path matches where the model is hosted
+            'combined_model.obj', 
             function (object) {
-                // Adjust material to improve appearance
-                object.traverse(function (child) {
-                    if (child.isMesh) {
-                        child.material.flatShading = true; // Optional: use flat shading
-                        child.material.color.set(0xaaaaaa); // Set a neutral gray color
-                        child.material.roughness = 0.5; // Adjust roughness
-                        child.material.metalness = 0.2; // Adjust metalness
-                    }
-                });
+                object.position.set(0, -1, 0);
                 scene.add(object);
-                object.position.set(0, -1, 0); // Adjust position as needed
-                console.log('Model loaded successfully');
             },
             function (xhr) {
                 console.log((xhr.loaded / xhr.total) * 100 + '% loaded');
@@ -87,8 +83,25 @@
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight * 0.8);
+            renderer.setSize(window.innerWidth, window.innerHeight * 0.6);
         });
+
+        // Fetch and display the last 10 activities from the log file
+        fetch('activity_log.csv')
+            .then(response => response.text())
+            .then(data => {
+                const lines = data.trim().split('\n').slice(-10); // Get the last 10 lines
+                const activityList = document.getElementById('activity-list');
+                lines.reverse().forEach(line => {
+                    const [timestamp, activity] = line.split(',');
+                    const listItem = document.createElement('li');
+                    listItem.textContent = `${timestamp.trim()}: ${activity.trim()}`;
+                    activityList.appendChild(listItem);
+                });
+            })
+            .catch(error => {
+                console.error('Error loading activity log:', error);
+            });
     </script>
 </body>
 </html>

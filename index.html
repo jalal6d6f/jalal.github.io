@@ -90,9 +90,19 @@
         fetch('activity_log.csv')
             .then(response => response.text())
             .then(data => {
-                const lines = data.trim().split('\n').slice(-10); // Get the last 10 lines
+                // Split data into lines and filter out empty lines
+                const lines = data.trim().split('\n').filter(line => line.length > 0);
+                
+                // Get the last 10 entries
+                const lastTenLines = lines.slice(-10).reverse(); // Reverse to show most recent first
+                
                 const activityList = document.getElementById('activity-list');
-                lines.reverse().forEach(line => {
+                
+                // Clear previous content
+                activityList.innerHTML = '';
+
+                // Display each entry
+                lastTenLines.forEach(line => {
                     const [timestamp, activity] = line.split(',');
                     const listItem = document.createElement('li');
                     listItem.textContent = `${timestamp.trim()}: ${activity.trim()}`;

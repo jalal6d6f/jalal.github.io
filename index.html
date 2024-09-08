@@ -15,7 +15,7 @@
 <body>
     <h1>Jalal's Location</h1>
     <div id="model-container"></div>
-
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/OBJLoader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
@@ -33,15 +33,32 @@
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
 
-        // Add neutral ambient light to gently illuminate the model without altering its appearance
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.3); // Lower intensity
+        // Adjusted lighting for better visibility
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.4); // Reduce intensity
         scene.add(ambientLight);
 
-        // Load the 3D model without altering its materials
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5); // Adjust intensity
+        directionalLight.position.set(10, 10, 10).normalize();
+        scene.add(directionalLight);
+
+        const pointLight = new THREE.PointLight(0xffffff, 0.3); // Add a point light with lower intensity
+        pointLight.position.set(-5, 5, 5);
+        scene.add(pointLight);
+
+        // Load the 3D model
         const loader = new THREE.OBJLoader();
         loader.load(
             'combined_model.obj', // Ensure this path matches where the model is hosted
             function (object) {
+                // Adjust material to improve appearance
+                object.traverse(function (child) {
+                    if (child.isMesh) {
+                        child.material.flatShading = true; // Optional: use flat shading
+                        child.material.color.set(0xaaaaaa); // Set a neutral gray color
+                        child.material.roughness = 0.5; // Adjust roughness
+                        child.material.metalness = 0.2; // Adjust metalness
+                    }
+                });
                 scene.add(object);
                 object.position.set(0, -1, 0); // Adjust position as needed
                 console.log('Model loaded successfully');

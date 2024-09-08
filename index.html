@@ -13,6 +13,7 @@
 <body>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/OBJLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
     <script>
         // Set up the scene, camera, and renderer
@@ -22,11 +23,14 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
-        // Add ambient light
+        // Add orbit controls for interactivity
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+
+        // Add lights to the scene
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
         scene.add(ambientLight);
-
-        // Add directional light
         const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
         directionalLight.position.set(10, 10, 10).normalize();
         scene.add(directionalLight);
@@ -34,23 +38,27 @@
         // Load the 3D model
         const loader = new THREE.OBJLoader();
         loader.load(
-            'combined_model.obj', // Path to the model
+            'combined_model.obj', // Ensure this path matches where the model is hosted
             function (object) {
                 scene.add(object);
-                object.position.set(0, -1, 0); // Adjust position
+                object.position.set(0, -1, 0); // Adjust position as needed
+                console.log('Model loaded successfully');
             },
-            undefined,
+            function (xhr) {
+                console.log((xhr.loaded / xhr.total) * 100 + '% loaded');
+            },
             function (error) {
                 console.error('An error occurred while loading the model:', error);
             }
         );
 
-        // Set camera position
+        // Set the camera position
         camera.position.z = 5;
 
         // Animation loop
         function animate() {
             requestAnimationFrame(animate);
+            controls.update();
             renderer.render(scene, camera);
         }
 

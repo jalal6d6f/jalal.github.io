@@ -1,0 +1,89 @@
+/* Global Styling */
+body {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    background-color: #000;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    overflow-x: hidden;
+}
+
+/* Headings */
+h1 {
+    font-size: 2.5rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-top: 20px;
+    background: linear-gradient(90deg, #fff, #777);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+h2 {
+    font-size: 1.8rem;
+    margin-top: 30px;
+    font-weight: 500;
+}
+
+/* 3D Model Viewer */
+#model-container {
+    width: 100vw;
+    height: 60vh;
+    background: radial-gradient(circle at center, #111, #000);
+    box-shadow: 0px 0px 40px rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+
+/* Activity Log */
+#activity-log {
+    width: 80%;
+    max-width: 900px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(255, 255, 255, 0.1);
+    margin-top: 20px;
+}
+
+#activity-list {
+    list-style: none;
+    padding: 0;
+    font-size: 1.1rem;
+}
+
+#activity-list li {
+    padding: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease-in-out;
+}
+
+#activity-list li:last-child {
+    border-bottom: none;
+}
+
+#activity-list li:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Tesla-Style Glow Effect */
+@keyframes glow {
+    0% { text-shadow: 0 0 5px #fff, 0 0 10px #777, 0 0 15px #444; }
+    50% { text-shadow: 0 0 10px #fff, 0 0 20px #999, 0 0 25px #666; }
+    100% { text-shadow: 0 0 5px #fff, 0 0 10px #777, 0 0 15px #444; }
+}
+
+h1, h2 {
+    animation: glow 3s infinite alternate;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    h1 { font-size: 2rem; }
+    h2 { font-size: 1.5rem; }
+    #activity-log { width: 95%; }
+}

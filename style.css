@@ -70,7 +70,7 @@ h2 {
     background: rgba(255, 255, 255, 0.1);
 }
 
-/* Tesla-Style Glow Effect */
+
 @keyframes glow {
     0% { text-shadow: 0 0 5px #fff, 0 0 10px #777, 0 0 15px #444; }
     50% { text-shadow: 0 0 10px #fff, 0 0 20px #999, 0 0 25px #666; }
@@ -81,7 +81,7 @@ h1, h2 {
     animation: glow 3s infinite alternate;
 }
 
-/* Responsive Design */
+
 @media (max-width: 768px) {
     h1 { font-size: 2rem; }
     h2 { font-size: 1.5rem; }

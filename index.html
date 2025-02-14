@@ -59,6 +59,12 @@
             function (object) {
                 object.position.set(0, -1, 0);
                 scene.add(object);
+
+                // Set the camera position based on the model's bounding box
+                const bbox = new THREE.Box3().setFromObject(object);
+                const center = bbox.getCenter(new THREE.Vector3());
+                camera.position.set(center.x + 3, center.y + 1, center.z + 5);  // Adjust based on your scene
+                controls.target.copy(center);  // Focus the camera on the model
             },
             function (xhr) {
                 console.log((xhr.loaded / xhr.total) * 100 + '% loaded');
@@ -67,9 +73,6 @@
                 console.error('An error occurred while loading the model:', error);
             }
         );
-
-        // Set the camera position
-        camera.position.z = 5;
 
         // Animation loop
         function animate() {

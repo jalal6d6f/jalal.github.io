@@ -74,6 +74,24 @@
             0% { box-shadow: 0 0 10px rgba(255, 0, 0, 0.8); }
             100% { box-shadow: 0 0 20px rgba(255, 0, 0, 1); }
         }
+
+        /* Activity Log */
+        #activity-log {
+            margin-top: 20px;
+            max-width: 90vw;
+            text-align: left;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
+        }
+
+        #activity-list {
+            list-style: none;
+            padding: 0;
+            font-size: 1.1rem;
+        }
     </style>
 </head>
 <body>
@@ -89,12 +107,17 @@
         <div class="dot" id="dot"></div>
     </div>
 
+    <h2>Last 10 Activities</h2>
+    <div id="activity-log">
+        <ul id="activity-list"></ul>
+    </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/OBJLoader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
     <script>
-        // 3D Model Viewer
+        // 3D Model Viewer Fix
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -120,7 +143,7 @@
                 console.log((xhr.loaded / xhr.total) * 100 + '% loaded');
             },
             function (error) {
-                console.error('An error occurred while loading the model:', error);
+                console.error('❌ Error loading model:', error);
             }
         );
 
@@ -138,26 +161,27 @@
                     const lines = data.trim().split('\n').filter(line => line.length > 0);
                     const lastTenLines = lines.slice(-10).reverse();
 
+                    const activityList = document.getElementById('activity-list');
+                    activityList.innerHTML = '';
+
                     let latestActivity = null;
 
                     lastTenLines.forEach(line => {
                         const [timestamp, activity] = line.split(',');
                         if (!latestActivity) latestActivity = activity.trim();
+                        const listItem = document.createElement('li');
+                        listItem.textContent = `${timestamp.trim()}: ${activity.trim()}`;
+                        activityList.appendChild(listItem);
                     });
 
                     if (latestActivity) updateDotPosition(latestActivity);
                 })
-                .catch(error => console.error('Error loading activity log:', error));
+                .catch(error => console.error('❌ Error loading activity log:', error));
         }
 
         function updateDotPosition(activity) {
             const dot = document.getElementById('dot');
-            let roomElement = null;
-
-            if (activity === "In_kitchen") roomElement = document.getElementById('kitchen');
-            else if (activity === "Sleeping") roomElement = document.getElementById('bedroom');
-            else if (activity === "In_bathroom") roomElement = document.getElementById('bathroom');
-            else if (activity === "On_Couch") roomElement = document.getElementById('living-room');
+            let roomElement = document.getElementById(activity.replace(" ", "-").toLowerCase());
 
             if (roomElement) {
                 const rect = roomElement.getBoundingClientRect();

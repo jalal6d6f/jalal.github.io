@@ -1,89 +1,159 @@
-/* Global Styling */
-body {
-    margin: 0;
-    font-family: 'Inter', sans-serif;
-    background-color: #000;
-    color: #fff;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    overflow-x: hidden;
-}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jalal's 3D Tracker & Room Map</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: "Press Start 2P", cursive; /* Retro game font */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #1a1a1a; /* Dark theme */
+            color: white;
+        }
 
-/* Headings */
-h1 {
-    font-size: 2.5rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    margin-top: 20px;
-    background: linear-gradient(90deg, #fff, #777);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
+        h1 { margin-top: 20px; }
 
-h2 {
-    font-size: 1.8rem;
-    margin-top: 30px;
-    font-weight: 500;
-}
+        /* 3D Model Viewer */
+        #model-container { width: 100vw; height: 60vh; }
 
-/* 3D Model Viewer */
-#model-container {
-    width: 100vw;
-    height: 60vh;
-    background: radial-gradient(circle at center, #111, #000);
-    box-shadow: 0px 0px 40px rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
-}
+        /* Realistic Room Layout with Video Game Theme */
+        #map-container {
+            width: 500px;
+            height: 350px;
+            position: relative;
+            margin-top: 20px;
+            background-color: #111;
+            border-radius: 10px;
+            display: grid;
+            grid-template-columns: 35% 65%;
+            grid-template-rows: 40% 25% 35%;
+            gap: 3px;
+            border: 5px solid #fff;
+            position: relative;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+        }
 
-/* Activity Log */
-#activity-log {
-    width: 80%;
-    max-width: 900px;
-    padding: 20px;
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(10px);
-    border-radius: 10px;
-    box-shadow: 0 4px 20px rgba(255, 255, 255, 0.1);
-    margin-top: 20px;
-}
+        .room {
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            color: white;
+            position: relative;
+            border: 2px solid black;
+            box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.1);
+        }
 
-#activity-list {
-    list-style: none;
-    padding: 0;
-    font-size: 1.1rem;
-}
+        /* Add pixel-style retro colors */
+        #bathroom { background: repeating-linear-gradient(45deg, #88ccff, #77bbff 10px, #66aaff 20px); grid-column: 1; grid-row: 1; }
+        #kitchen { background: repeating-linear-gradient(45deg, #ffcc77, #ffbb66 10px, #ffaa55 20px); grid-column: 2; grid-row: 1 / span 2; }
+        #bedroom { background: repeating-linear-gradient(45deg, #aa77ff, #9966ff 10px, #8855ff 20px); grid-column: 1; grid-row: 2 / span 2; }
+        #living-room { background: repeating-linear-gradient(45deg, #55ff88, #44ee77 10px, #33dd66 20px); grid-column: 2; grid-row: 3; }
 
-#activity-list li {
-    padding: 10px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-    transition: all 0.3s ease-in-out;
-}
+        /* Arrow Styling */
+        .arrow {
+            position: absolute;
+            font-size: 2rem;
+            color: red;
+            transition: transform 1s ease-in-out;
+        }
 
-#activity-list li:last-child {
-    border-bottom: none;
-}
+        #activity-log { margin-top: 20px; max-width: 90vw; text-align: left; }
+    </style>
+</head>
+<body>
+    <h1>Jalal's Location</h1>
+    <div id="model-container"></div>
 
-#activity-list li:hover {
-    background: rgba(255, 255, 255, 0.1);
-}
+    <!-- NEW ROOM MAP -->
+    <h2>Live Room Map</h2>
+    <div id="map-container">
+        <div class="room" id="bathroom">Bathroom</div>
+        <div class="room" id="kitchen">Kitchen</div>
+        <div class="room" id="bedroom">Bedroom</div>
+        <div class="room" id="living-room">Living Room</div>
+        <div class="arrow" id="arrow">🡆</div>
+    </div>
 
+    <h2>Last 10 Activities</h2>
+    <div id="activity-log">
+        <ul id="activity-list"></ul>
+    </div>
 
-@keyframes glow {
-    0% { text-shadow: 0 0 5px #fff, 0 0 10px #777, 0 0 15px #444; }
-    50% { text-shadow: 0 0 10px #fff, 0 0 20px #999, 0 0 25px #666; }
-    100% { text-shadow: 0 0 5px #fff, 0 0 10px #777, 0 0 15px #444; }
-}
+    <script>
+        function updateActivityLog() {
+            fetch('activity_log.csv')
+                .then(response => response.text())
+                .then(data => {
+                    const lines = data.trim().split('\n').filter(line => line.length > 0);
+                    const lastTenLines = lines.slice(-10).reverse();
 
-h1, h2 {
-    animation: glow 3s infinite alternate;
-}
+                    const activityList = document.getElementById('activity-list');
+                    activityList.innerHTML = '';
 
+                    let latestActivity = null;
 
-@media (max-width: 768px) {
-    h1 { font-size: 2rem; }
-    h2 { font-size: 1.5rem; }
-    #activity-log { width: 95%; }
-}
+                    lastTenLines.forEach(line => {
+                        const [timestamp, activity] = line.split(',');
+                        if (!latestActivity) latestActivity = activity.trim();
+                        const listItem = document.createElement('li');
+                        listItem.textContent = `${timestamp.trim()}: ${activity.trim()}`;
+                        activityList.appendChild(listItem);
+                    });
+
+                    if (latestActivity) updateArrowPosition(latestActivity);
+                })
+                .catch(error => {
+                    console.error('Error loading activity log:', error);
+                });
+        }
+
+        function updateArrowPosition(activity) {
+            const arrow = document.getElementById('arrow');
+            let roomElement;
+
+            switch (activity) {
+                case "In_kitchen":
+                    roomElement = document.getElementById('kitchen');
+                    break;
+                case "Sleeping":
+                    roomElement = document.getElementById('bedroom');  // Bedroom doesn't move
+                    break;
+                case "In_bathroom":
+                    roomElement = document.getElementById('bathroom');
+                    break;
+                case "On_Couch":
+                    roomElement = document.getElementById('living-room');
+                    break;
+                default:
+                    roomElement = null;
+                    break;
+            }
+
+            if (roomElement) {
+                const rect = roomElement.getBoundingClientRect();
+                
+                let xOffset = 0, yOffset = 0;
+                
+                // If the room is NOT the bedroom, move randomly
+                if (activity !== "Sleeping") {
+                    xOffset = Math.random() * (rect.width - 30);
+                    yOffset = Math.random() * (rect.height - 30);
+                }
+
+                arrow.style.transform = `translate(${rect.left + xOffset}px, ${rect.top + yOffset}px)`;
+            }
+        }
+
+        updateActivityLog();
+        setInterval(updateActivityLog, 5000);
+    </script>
+</body>
+</html>

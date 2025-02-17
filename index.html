@@ -23,9 +23,10 @@
         /* 3D Model Viewer */
         #model-container { width: 100vw; height: 60vh; }
 
-        /* Realistic Room Layout */
+        /* Realistic Room Layout with Mobile Responsiveness */
         #map-container {
-            width: 500px;
+            width: 90vw;
+            max-width: 500px;
             height: 400px;
             position: relative;
             margin-top: 20px;
@@ -52,18 +53,27 @@
             position: relative;
         }
 
-        /* Distinct Colors for Each Room */
+        /* Room Colors */
         #bathroom { background: #3b82f6; grid-column: 1; grid-row: 1; }
         #kitchen { background: #f59e0b; grid-column: 2; grid-row: 1 / span 2; }
         #bedroom { background: #9333ea; grid-column: 1; grid-row: 2 / span 2; }
         #living-room { background: #10b981; grid-column: 2; grid-row: 3; }
 
-        /* Arrow Styling */
-        .arrow {
+        /* Red Dot for Movement */
+        .dot {
             position: absolute;
-            font-size: 2rem;
-            color: red;
-            transition: transform 0.8s ease-in-out;
+            width: 15px;
+            height: 15px;
+            background-color: red;
+            border-radius: 50%;
+            transition: transform 3s ease-in-out;
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.8);
+            animation: glow 5s infinite alternate;
+        }
+
+        @keyframes glow {
+            0% { box-shadow: 0 0 10px rgba(255, 0, 0, 0.8); }
+            100% { box-shadow: 0 0 20px rgba(255, 0, 0, 1); }
         }
 
         #activity-log {
@@ -105,7 +115,7 @@
         <div class="room" id="kitchen">Kitchen</div>
         <div class="room" id="bedroom">Bedroom</div>
         <div class="room" id="living-room">Living Room</div>
-        <div class="arrow" id="arrow">🡆</div>
+        <div class="dot" id="dot"></div>
     </div>
 
     <h2>Last 10 Activities</h2>
@@ -134,15 +144,15 @@
                         activityList.appendChild(listItem);
                     });
 
-                    if (latestActivity) updateArrowPosition(latestActivity);
+                    if (latestActivity) updateDotPosition(latestActivity);
                 })
                 .catch(error => {
                     console.error('Error loading activity log:', error);
                 });
         }
 
-        function updateArrowPosition(activity) {
-            const arrow = document.getElementById('arrow');
+        function updateDotPosition(activity) {
+            const dot = document.getElementById('dot');
             let roomElement;
 
             switch (activity) {
@@ -150,7 +160,7 @@
                     roomElement = document.getElementById('kitchen');
                     break;
                 case "Sleeping":
-                    roomElement = document.getElementById('bedroom');  // Bedroom - arrow stays in center
+                    roomElement = document.getElementById('bedroom');  // Bedroom - dot stays in center
                     break;
                 case "In_bathroom":
                     roomElement = document.getElementById('bathroom');
@@ -174,12 +184,12 @@
                     yOffset = Math.random() * (rect.height - 30);
                 }
 
-                arrow.style.transform = `translate(${rect.left + xOffset}px, ${rect.top + yOffset}px)`;
+                dot.style.transform = `translate(${rect.left + xOffset}px, ${rect.top + yOffset}px)`;
             }
         }
 
         updateActivityLog();
-        setInterval(updateActivityLog, 5000);
+        setInterval(updateActivityLog, 10000); // Update every 10 seconds
     </script>
 </body>
 </html>

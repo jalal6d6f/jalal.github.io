@@ -23,7 +23,7 @@
         /* 3D Model Viewer */
         #model-container { width: 100vw; height: 60vh; }
 
-        /* Room Layout (Mobile Responsive) */
+        /* Room Layout */
         #map-container {
             width: 90vw;
             max-width: 500px;
@@ -59,37 +59,20 @@
         #bedroom { background: #9333ea; grid-column: 1; grid-row: 2 / span 2; position: relative; }
         #living-room { background: #10b981; grid-column: 2; grid-row: 3; position: relative; }
 
-        /* Red Dot (Now stays inside the map) */
+        /* Red Dot */
         .dot {
             width: 15px;
             height: 15px;
             background-color: red;
             border-radius: 50%;
             position: absolute;
-            transition: transform 3s ease-in-out;
+            transition: transform 5s ease-in-out;
             animation: glow 5s infinite alternate;
         }
 
         @keyframes glow {
             0% { box-shadow: 0 0 10px rgba(255, 0, 0, 0.8); }
             100% { box-shadow: 0 0 20px rgba(255, 0, 0, 1); }
-        }
-
-        #activity-log {
-            margin-top: 20px;
-            max-width: 90vw;
-            text-align: left;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
-        }
-
-        #activity-list {
-            list-style: none;
-            padding: 0;
-            font-size: 1.1rem;
         }
     </style>
 </head>
@@ -104,11 +87,6 @@
         <div class="room" id="bedroom">Bedroom</div>
         <div class="room" id="living-room">Living Room</div>
         <div class="dot" id="dot"></div>
-    </div>
-
-    <h2>Last 10 Activities</h2>
-    <div id="activity-log">
-        <ul id="activity-list"></ul>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -137,6 +115,12 @@
                 const center = bbox.getCenter(new THREE.Vector3());
                 camera.position.set(center.x + 3, center.y + 1, center.z + 5);
                 controls.target.copy(center);
+            },
+            function (xhr) {
+                console.log((xhr.loaded / xhr.total) * 100 + '% loaded');
+            },
+            function (error) {
+                console.error('An error occurred while loading the model:', error);
             }
         );
 
@@ -154,17 +138,11 @@
                     const lines = data.trim().split('\n').filter(line => line.length > 0);
                     const lastTenLines = lines.slice(-10).reverse();
 
-                    const activityList = document.getElementById('activity-list');
-                    activityList.innerHTML = '';
-
                     let latestActivity = null;
 
                     lastTenLines.forEach(line => {
                         const [timestamp, activity] = line.split(',');
                         if (!latestActivity) latestActivity = activity.trim();
-                        const listItem = document.createElement('li');
-                        listItem.textContent = `${timestamp.trim()}: ${activity.trim()}`;
-                        activityList.appendChild(listItem);
                     });
 
                     if (latestActivity) updateDotPosition(latestActivity);
@@ -174,12 +152,17 @@
 
         function updateDotPosition(activity) {
             const dot = document.getElementById('dot');
-            let roomElement = document.getElementById(activity.replace(" ", "-").toLowerCase());
+            let roomElement = null;
+
+            if (activity === "In_kitchen") roomElement = document.getElementById('kitchen');
+            else if (activity === "Sleeping") roomElement = document.getElementById('bedroom');
+            else if (activity === "In_bathroom") roomElement = document.getElementById('bathroom');
+            else if (activity === "On_Couch") roomElement = document.getElementById('living-room');
 
             if (roomElement) {
                 const rect = roomElement.getBoundingClientRect();
                 const mapRect = document.getElementById('map-container').getBoundingClientRect();
-                
+
                 let xOffset = Math.random() * (rect.width - 20);
                 let yOffset = Math.random() * (rect.height - 20);
 

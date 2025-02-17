@@ -5,117 +5,181 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Model Viewer and Activity Log </title>
+    <title>Jalal's 3D Tracker & Room Map</title>
     <style>
-        body { margin: 0; font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; }
+        body {
+            margin: 0;
+            font-family: "Inter", sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #000;
+            color: white;
+            text-align: center;
+        }
+
         h1 { margin-top: 20px; }
+
+        /* 3D Model Viewer */
         #model-container { width: 100vw; height: 60vh; }
-        canvas { display: block; }
-        #activity-log { margin-top: 20px; max-width: 90vw; text-align: left; }
+
+        /* Realistic Room Layout */
+        #map-container {
+            width: 500px;
+            height: 400px;
+            position: relative;
+            margin-top: 20px;
+            background-color: #222;
+            border-radius: 10px;
+            display: grid;
+            grid-template-columns: 35% 65%;
+            grid-template-rows: 30% 40% 30%;
+            gap: 3px;
+            border: 3px solid white;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+        }
+
+        .room {
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            font-weight: bold;
+            color: white;
+            border: 2px solid black;
+            box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.1);
+            position: relative;
+        }
+
+        /* Distinct Colors for Each Room */
+        #bathroom { background: #3b82f6; grid-column: 1; grid-row: 1; }
+        #kitchen { background: #f59e0b; grid-column: 2; grid-row: 1 / span 2; }
+        #bedroom { background: #9333ea; grid-column: 1; grid-row: 2 / span 2; }
+        #living-room { background: #10b981; grid-column: 2; grid-row: 3; }
+
+        /* Arrow Styling */
+        .arrow {
+            position: absolute;
+            font-size: 2rem;
+            color: red;
+            transition: transform 0.8s ease-in-out;
+        }
+
+        #activity-log {
+            margin-top: 20px;
+            max-width: 90vw;
+            text-align: left;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
+        }
+
+        #activity-list {
+            list-style: none;
+            padding: 0;
+            font-size: 1.1rem;
+        }
+
+        #activity-list li {
+            padding: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease-in-out;
+        }
+
+        #activity-list li:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
     </style>
 </head>
 <body>
     <h1>Jalal's Location</h1>
     <div id="model-container"></div>
 
+    <!-- Realistic Room Map -->
+    <h2>Live Room Map</h2>
+    <div id="map-container">
+        <div class="room" id="bathroom">Bathroom</div>
+        <div class="room" id="kitchen">Kitchen</div>
+        <div class="room" id="bedroom">Bedroom</div>
+        <div class="room" id="living-room">Living Room</div>
+        <div class="arrow" id="arrow">🡆</div>
+    </div>
+
     <h2>Last 10 Activities</h2>
     <div id="activity-log">
         <ul id="activity-list"></ul>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/OBJLoader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-
     <script>
-        // Set up the scene, camera, and renderer
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight * 0.6); // 60% height to fit below heading
-        document.getElementById('model-container').appendChild(renderer.domElement);
+        function updateActivityLog() {
+            fetch('activity_log.csv')
+                .then(response => response.text())
+                .then(data => {
+                    const lines = data.trim().split('\n').filter(line => line.length > 0);
+                    const lastTenLines = lines.slice(-10).reverse();
 
-        // Add orbit controls for interactivity
-        const controls = new THREE.OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = true;
-        controls.dampingFactor = 0.05;
+                    const activityList = document.getElementById('activity-list');
+                    activityList.innerHTML = '';
 
-        // Add lighting
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
-        scene.add(ambientLight);
+                    let latestActivity = null;
 
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
-        directionalLight.position.set(10, 10, 10).normalize();
-        scene.add(directionalLight);
+                    lastTenLines.forEach(line => {
+                        const [timestamp, activity] = line.split(',');
+                        if (!latestActivity) latestActivity = activity.trim();
+                        const listItem = document.createElement('li');
+                        listItem.textContent = `${timestamp.trim()}: ${activity.trim()}`;
+                        activityList.appendChild(listItem);
+                    });
 
-        const pointLight = new THREE.PointLight(0xffffff, 0.3);
-        pointLight.position.set(-5, 5, 5);
-        scene.add(pointLight);
-
-        // Load the 3D model
-        const loader = new THREE.OBJLoader();
-        loader.load(
-            'combined_model.obj', 
-            function (object) {
-                object.position.set(0, -1, 0);
-                scene.add(object);
-
-                // Set the camera position based on the model's bounding box
-                const bbox = new THREE.Box3().setFromObject(object);
-                const center = bbox.getCenter(new THREE.Vector3());
-                camera.position.set(center.x + 3, center.y + 1, center.z + 5);  // Adjust based on your scene
-                controls.target.copy(center);  // Focus the camera on the model
-            },
-            function (xhr) {
-                console.log((xhr.loaded / xhr.total) * 100 + '% loaded');
-            },
-            function (error) {
-                console.error('An error occurred while loading the model:', error);
-            }
-        );
-
-        // Animation loop
-        function animate() {
-            requestAnimationFrame(animate);
-            controls.update();
-            renderer.render(scene, camera);
+                    if (latestActivity) updateArrowPosition(latestActivity);
+                })
+                .catch(error => {
+                    console.error('Error loading activity log:', error);
+                });
         }
 
-        animate();
+        function updateArrowPosition(activity) {
+            const arrow = document.getElementById('arrow');
+            let roomElement;
 
-        // Handle window resize
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight * 0.6);
-        });
+            switch (activity) {
+                case "In_kitchen":
+                    roomElement = document.getElementById('kitchen');
+                    break;
+                case "Sleeping":
+                    roomElement = document.getElementById('bedroom');  // Bedroom - arrow stays in center
+                    break;
+                case "In_bathroom":
+                    roomElement = document.getElementById('bathroom');
+                    break;
+                case "On_Couch":
+                    roomElement = document.getElementById('living-room');
+                    break;
+                default:
+                    roomElement = null;
+                    break;
+            }
 
-        // Fetch and display the last 10 activities from the log file
-        fetch('activity_log.csv')
-            .then(response => response.text())
-            .then(data => {
-                // Split data into lines and filter out empty lines
-                const lines = data.trim().split('\n').filter(line => line.length > 0);
+            if (roomElement) {
+                const rect = roomElement.getBoundingClientRect();
                 
-                // Get the last 10 entries
-                const lastTenLines = lines.slice(-10).reverse(); // Reverse to show most recent first
+                let xOffset = 0, yOffset = 0;
                 
-                const activityList = document.getElementById('activity-list');
-                
-                // Clear previous content
-                activityList.innerHTML = '';
+                // Move randomly in all rooms EXCEPT the bedroom
+                if (activity !== "Sleeping") {
+                    xOffset = Math.random() * (rect.width - 30);
+                    yOffset = Math.random() * (rect.height - 30);
+                }
 
-                // Display each entry
-                lastTenLines.forEach(line => {
-                    const [timestamp, activity] = line.split(',');
-                    const listItem = document.createElement('li');
-                    listItem.textContent = `${timestamp.trim()}: ${activity.trim()}`;
-                    activityList.appendChild(listItem);
-                });
-            })
-            .catch(error => {
-                console.error('Error loading activity log:', error);
-            });
+                arrow.style.transform = `translate(${rect.left + xOffset}px, ${rect.top + yOffset}px)`;
+            }
+        }
+
+        updateActivityLog();
+        setInterval(updateActivityLog, 5000);
     </script>
 </body>
 </html>

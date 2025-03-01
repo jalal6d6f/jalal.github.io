@@ -111,13 +111,14 @@
                 console.error('Error loading activity log:', error);
             });
 
-        // Force cache refresh
+        // Prevent infinite reload by checking sessionStorage
         if ('serviceWorker' in navigator) {
             caches.keys().then(function(names) {
                 for (let name of names) caches.delete(name);
             });
         }
-        if (performance.navigation.type === 1) {
+        if (!sessionStorage.getItem("cacheRefreshed")) {
+            sessionStorage.setItem("cacheRefreshed", "true");
             window.location.reload(true);
         }
     </script>

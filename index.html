@@ -1,11 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=2.0">
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Model Viewer and Activity Log </title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>3D Model Viewer and Activity Log</title>
     <style>
         body { margin: 0; font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; }
         h1 { margin-top: 20px; }
@@ -32,7 +35,7 @@
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight * 0.6); // 60% height to fit below heading
+        renderer.setSize(window.innerWidth, window.innerHeight * 0.6);
         document.getElementById('model-container').appendChild(renderer.domElement);
 
         // Add orbit controls for interactivity
@@ -55,7 +58,7 @@
         // Load the 3D model
         const loader = new THREE.OBJLoader();
         loader.load(
-            'combined_model.obj', 
+            'combined_model.obj?v=2.0', 
             function (object) {
                 object.position.set(0, -1, 0);
                 scene.add(object);
@@ -63,8 +66,8 @@
                 // Set the camera position based on the model's bounding box
                 const bbox = new THREE.Box3().setFromObject(object);
                 const center = bbox.getCenter(new THREE.Vector3());
-                camera.position.set(center.x + 3, center.y + 1, center.z + 5);  // Adjust based on your scene
-                controls.target.copy(center);  // Focus the camera on the model
+                camera.position.set(center.x + 3, center.y + 1, center.z + 5);
+                controls.target.copy(center);
             },
             function (xhr) {
                 console.log((xhr.loaded / xhr.total) * 100 + '% loaded');
@@ -80,7 +83,6 @@
             controls.update();
             renderer.render(scene, camera);
         }
-
         animate();
 
         // Handle window resize
@@ -91,21 +93,13 @@
         });
 
         // Fetch and display the last 10 activities from the log file
-        fetch('activity_log.csv')
+        fetch('activity_log.csv?v=2.0')
             .then(response => response.text())
             .then(data => {
-                // Split data into lines and filter out empty lines
                 const lines = data.trim().split('\n').filter(line => line.length > 0);
-                
-                // Get the last 10 entries
-                const lastTenLines = lines.slice(-10).reverse(); // Reverse to show most recent first
-                
+                const lastTenLines = lines.slice(-10).reverse();
                 const activityList = document.getElementById('activity-list');
-                
-                // Clear previous content
                 activityList.innerHTML = '';
-
-                // Display each entry
                 lastTenLines.forEach(line => {
                     const [timestamp, activity] = line.split(',');
                     const listItem = document.createElement('li');
@@ -116,6 +110,16 @@
             .catch(error => {
                 console.error('Error loading activity log:', error);
             });
+
+        // Force cache refresh
+        if ('serviceWorker' in navigator) {
+            caches.keys().then(function(names) {
+                for (let name of names) caches.delete(name);
+            });
+        }
+        if (performance.navigation.type === 1) {
+            window.location.reload(true);
+        }
     </script>
 </body>
 </html>

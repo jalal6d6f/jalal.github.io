@@ -1,159 +1,165 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <link rel="stylesheet" href="style.css">
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jalal's 3D Tracker & Room Map</title>
-    <style>
-        body {
-            margin: 0;
-            font-family: "Press Start 2P", cursive; /* Retro game font */
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background-color: #1a1a1a; /* Dark theme */
-            color: white;
-        }
+/* General reset and styling */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
-        h1 { margin-top: 20px; }
+body {
+    background-color: #121212; /* Dark theme */
+    color: #f5f5f5; /* Light text for contrast */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Modern font */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
 
-        /* 3D Model Viewer */
-        #model-container { width: 100vw; height: 60vh; }
+/* Header styling */
+h1 {
+    font-size: 2.5rem;
+    margin-top: 20px;
+    color: #00f0f0; /* Neon blue color for tech feel */
+    text-shadow: 0 0 10px rgba(0, 255, 255, 0.7);
+}
 
-        /* Realistic Room Layout with Video Game Theme */
-        #map-container {
-            width: 500px;
-            height: 350px;
-            position: relative;
-            margin-top: 20px;
-            background-color: #111;
-            border-radius: 10px;
-            display: grid;
-            grid-template-columns: 35% 65%;
-            grid-template-rows: 40% 25% 35%;
-            gap: 3px;
-            border: 5px solid #fff;
-            position: relative;
-            box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
-        }
+/* Subheading styling */
+h2 {
+    font-size: 1.8rem;
+    margin-top: 20px;
+    color: #00e0e0; /* Lighter neon color */
+}
 
-        .room {
-            text-align: center;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1rem;
-            color: white;
-            position: relative;
-            border: 2px solid black;
-            box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.1);
-        }
+/* 3D Model Viewer container */
+#model-container {
+    width: 100vw;
+    height: 60vh;
+    background: #222222; /* Dark background to match the theme */
+    border: 1px solid #444; /* Subtle borders for separation */
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.5); /* Techy glowing effect */
+}
 
-        /* Add pixel-style retro colors */
-        #bathroom { background: repeating-linear-gradient(45deg, #88ccff, #77bbff 10px, #66aaff 20px); grid-column: 1; grid-row: 1; }
-        #kitchen { background: repeating-linear-gradient(45deg, #ffcc77, #ffbb66 10px, #ffaa55 20px); grid-column: 2; grid-row: 1 / span 2; }
-        #bedroom { background: repeating-linear-gradient(45deg, #aa77ff, #9966ff 10px, #8855ff 20px); grid-column: 1; grid-row: 2 / span 2; }
-        #living-room { background: repeating-linear-gradient(45deg, #55ff88, #44ee77 10px, #33dd66 20px); grid-column: 2; grid-row: 3; }
+/* Room Map Container */
+#map-container {
+    width: 500px;
+    height: 350px;
+    position: relative;
+    margin-top: 30px;
+    background-color: #1e1e1e; /* Darker container */
+    border-radius: 10px;
+    display: grid;
+    grid-template-columns: 35% 65%;
+    grid-template-rows: 40% 25% 35%;
+    gap: 3px;
+    border: 2px solid #444; /* Dark border for contrast */
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+}
 
-        /* Arrow Styling */
-        .arrow {
-            position: absolute;
-            font-size: 2rem;
-            color: red;
-            transition: transform 1s ease-in-out;
-        }
+/* Room styling with hover effects */
+.room {
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    color: #f5f5f5; /* Light text */
+    position: relative;
+    background: #333; /* Subtle background for rooms */
+    border: 2px solid #444;
+    box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease-in-out;
+}
 
-        #activity-log { margin-top: 20px; max-width: 90vw; text-align: left; }
-    </style>
-</head>
-<body>
-    <h1>Jalal's Location</h1>
-    <div id="model-container"></div>
+.room:hover {
+    background: #555; /* Darker shade on hover */
+    transform: scale(1.05); /* Slight zoom effect */
+}
 
-    <!-- NEW ROOM MAP -->
-    <h2>Live Room Map</h2>
-    <div id="map-container">
-        <div class="room" id="bathroom">Bathroom</div>
-        <div class="room" id="kitchen">Kitchen</div>
-        <div class="room" id="bedroom">Bedroom</div>
-        <div class="room" id="living-room">Living Room</div>
-        <div class="arrow" id="arrow">🡆</div>
-    </div>
+/* Room specific styles with gradient for a tech vibe */
+#bathroom {
+    background: repeating-linear-gradient(45deg, #80ffbf, #66ff9f 10px, #4cd97f 20px);
+}
+#kitchen {
+    background: repeating-linear-gradient(45deg, #ff80b3, #ff66a3 10px, #ff4d94 20px);
+}
+#bedroom {
+    background: repeating-linear-gradient(45deg, #c084ff, #b274ff 10px, #9e61ff 20px);
+}
+#living-room {
+    background: repeating-linear-gradient(45deg, #66ccff, #66b2ff 10px, #6699ff 20px);
+}
 
-    <h2>Last 10 Activities</h2>
-    <div id="activity-log">
-        <ul id="activity-list"></ul>
-    </div>
+/* Arrow styling for the activity tracker */
+.arrow {
+    position: absolute;
+    font-size: 2.5rem;
+    color: #ff3b3b; /* Bright red for visibility */
+    transition: transform 1s ease-in-out;
+    z-index: 10;
+}
 
-    <script>
-        function updateActivityLog() {
-            fetch('activity_log.csv')
-                .then(response => response.text())
-                .then(data => {
-                    const lines = data.trim().split('\n').filter(line => line.length > 0);
-                    const lastTenLines = lines.slice(-10).reverse();
+/* Activity log styling */
+#activity-log {
+    margin-top: 20px;
+    max-width: 90vw;
+    text-align: left;
+    background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent background */
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.3); /* Glowing effect */
+}
 
-                    const activityList = document.getElementById('activity-list');
-                    activityList.innerHTML = '';
+#activity-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
 
-                    let latestActivity = null;
+#activity-list li {
+    font-size: 1.1rem;
+    color: #e0e0e0; /* Light gray text for activity log */
+    margin-bottom: 10px;
+    border-bottom: 1px solid #444;
+    padding-bottom: 5px;
+}
 
-                    lastTenLines.forEach(line => {
-                        const [timestamp, activity] = line.split(',');
-                        if (!latestActivity) latestActivity = activity.trim();
-                        const listItem = document.createElement('li');
-                        listItem.textContent = `${timestamp.trim()}: ${activity.trim()}`;
-                        activityList.appendChild(listItem);
-                    });
+#activity-list li:last-child {
+    border-bottom: none;
+}
 
-                    if (latestActivity) updateArrowPosition(latestActivity);
-                })
-                .catch(error => {
-                    console.error('Error loading activity log:', error);
-                });
-        }
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    #map-container {
+        width: 100%;
+        height: auto;
+    }
 
-        function updateArrowPosition(activity) {
-            const arrow = document.getElementById('arrow');
-            let roomElement;
+    .room {
+        font-size: 1rem;
+    }
 
-            switch (activity) {
-                case "In_kitchen":
-                    roomElement = document.getElementById('kitchen');
-                    break;
-                case "Sleeping":
-                    roomElement = document.getElementById('bedroom');  // Bedroom doesn't move
-                    break;
-                case "In_bathroom":
-                    roomElement = document.getElementById('bathroom');
-                    break;
-                case "On_Couch":
-                    roomElement = document.getElementById('living-room');
-                    break;
-                default:
-                    roomElement = null;
-                    break;
-            }
+    #activity-log {
+        width: 100%;
+        padding: 10px;
+    }
+}
 
-            if (roomElement) {
-                const rect = roomElement.getBoundingClientRect();
-                
-                let xOffset = 0, yOffset = 0;
-                
-                // If the room is NOT the bedroom, move randomly
-                if (activity !== "Sleeping") {
-                    xOffset = Math.random() * (rect.width - 30);
-                    yOffset = Math.random() * (rect.height - 30);
-                }
+@media (max-width: 480px) {
+    h1 {
+        font-size: 2rem;
+    }
 
-                arrow.style.transform = `translate(${rect.left + xOffset}px, ${rect.top + yOffset}px)`;
-            }
-        }
+    h2 {
+        font-size: 1.5rem;
+    }
 
-        updateActivityLog();
-        setInterval(updateActivityLog, 5000);
-    </script>
-</body>
-</html>
+    #model-container {
+        height: 50vh;
+    }
+
+    #activity-log {
+        padding: 8px;
+    }
+}

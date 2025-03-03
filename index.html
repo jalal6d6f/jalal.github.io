@@ -45,69 +45,28 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
     <script>
-        // Set up the scene, camera, and renderer
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight * 0.6);
-        document.getElementById('model-container').appendChild(renderer.domElement);
+        const classNames = {
+            'In_kitchen': { en: "In Kitchen", ar: "في المطبخ" },
+            'Not_home': { en: "Not Home", ar: "ليس في المنزل" },
+            'On_Couch': { en: "On Couch", ar: "على الأريكة" },
+            'Sleeping': { en: "Sleeping", ar: "نائم" },
+            'Standing': { en: "Standing", ar: "واقف" }
+        };
 
-        // Add orbit controls for interactivity
-        const controls = new THREE.OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = true;
-        controls.dampingFactor = 0.05;
-
-        // Add lighting
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
-        scene.add(ambientLight);
-
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
-        directionalLight.position.set(10, 10, 10).normalize();
-        scene.add(directionalLight);
-
-        const pointLight = new THREE.PointLight(0xffffff, 0.3);
-        pointLight.position.set(-5, 5, 5);
-        scene.add(pointLight);
-
-        // Load the 3D model
-        const loader = new THREE.OBJLoader();
-        loader.load(
-            'combined_model.obj?v=2.0', 
-            function (object) {
-                object.position.set(0, -1, 0);
-                scene.add(object);
-
-                // Set the camera position based on the model's bounding box
-                const bbox = new THREE.Box3().setFromObject(object);
-                const center = bbox.getCenter(new THREE.Vector3());
-                camera.position.set(center.x + 3, center.y + 1, center.z + 5);
-                controls.target.copy(center);
-            },
-            function (xhr) {
-                console.log((xhr.loaded / xhr.total) * 100 + '% loaded');
-            },
-            function (error) {
-                console.error('An error occurred while loading the model:', error);
-            }
-        );
-
-        // Animation loop
-        function animate() {
-            requestAnimationFrame(animate);
-            controls.update();
-            renderer.render(scene, camera);
+        let currentLanguage = 'en';
+        function switchLanguage(lang) {
+            currentLanguage = lang;
+            loadActivityLog();
         }
-        animate();
 
-        // Handle window resize
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight * 0.6);
-        });
+        function formatTime(timestamp, timezone) {
+            let date = new Date(timestamp);
+            let options = { hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: true, timeZone: timezone };
+            return new Intl.DateTimeFormat('en-US', options).format(date);
+        }
 
-        // Load and display activity log
         function loadActivityLog() {
+            let timezone = document.getElementById("timezone").value;
             fetch('activity_log.csv?v=2.0')
                 .then(response => response.text())
                 .then(data => {
@@ -115,14 +74,19 @@
                     if (lines.length === 0) return;
                     
                     const lastActivity = lines[lines.length - 1].split(',');
-                    document.getElementById('latest-activity').innerHTML = `Latest Activity: <span class="bold">${lastActivity[1]}</span>`;
+                    const latestTimestamp = formatTime(lastActivity[0], timezone);
+                    const latestActivity = classNames[lastActivity[1]] ? classNames[lastActivity[1]][currentLanguage] : lastActivity[1];
+                    document.getElementById('latest-activity').innerHTML = `Latest Activity: <span class="bold">${latestActivity} at ${latestTimestamp}</span>`;
                     
                     const lastTenLines = lines.slice(-10).reverse();
                     const activityList = document.getElementById('activity-list');
                     activityList.innerHTML = '';
                     lastTenLines.forEach(line => {
+                        const [timestamp, activity] = line.split(',');
+                        const formattedTime = formatTime(timestamp, timezone);
+                        const translatedActivity = classNames[activity] ? classNames[activity][currentLanguage] : activity;
                         const listItem = document.createElement('li');
-                        listItem.textContent = line;
+                        listItem.textContent = `${formattedTime}: ${translatedActivity}`;
                         activityList.appendChild(listItem);
                     });
                 })

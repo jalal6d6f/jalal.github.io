@@ -15,24 +15,32 @@
         #model-container { width: 100vw; height: 60vh; }
         canvas { display: block; }
         #activity-log { margin-top: 20px; max-width: 90vw; text-align: left; }
-        .bold { font-weight: bold; }
     </style>
 </head>
 <body>
-    <h1>Jalal's Location</h1>
-    <h2 id="latest-activity">Latest Activity: <span class="bold">Loading...</span></h2>
+    <h1 id="title">Jalal's Location</h1>
     <div id="model-container"></div>
 
-    <h2>Last 10 Activities</h2>
+    <h2 id="activities-title">Last 10 Activities</h2>
     <div id="activity-log">
         <ul id="activity-list"></ul>
     </div>
+
+    <button onclick="toggleLanguage()">Switch Language</button>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/OBJLoader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
     <script>
+        let isArabic = false;
+
+        function toggleLanguage() {
+            isArabic = !isArabic;
+            document.getElementById("title").textContent = isArabic ? "موقع جلال" : "Jalal's Location";
+            document.getElementById("activities-title").textContent = isArabic ? "آخر 10 أنشطة" : "Last 10 Activities";
+        }
+
         // Set up the scene, camera, and renderer
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);

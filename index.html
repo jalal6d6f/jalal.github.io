@@ -105,6 +105,31 @@
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight * 0.6);
         });
+
+        // Load and display activity log
+        function loadActivityLog() {
+            fetch('activity_log.csv?v=2.0')
+                .then(response => response.text())
+                .then(data => {
+                    const lines = data.trim().split('\n').filter(line => line.length > 0);
+                    if (lines.length === 0) return;
+                    
+                    const lastActivity = lines[lines.length - 1].split(',');
+                    document.getElementById('latest-activity').innerHTML = `Latest Activity: <span class="bold">${lastActivity[1]}</span>`;
+                    
+                    const lastTenLines = lines.slice(-10).reverse();
+                    const activityList = document.getElementById('activity-list');
+                    activityList.innerHTML = '';
+                    lastTenLines.forEach(line => {
+                        const listItem = document.createElement('li');
+                        listItem.textContent = line;
+                        activityList.appendChild(listItem);
+                    });
+                })
+                .catch(error => console.error('Error loading activity log:', error));
+        }
+        loadActivityLog();
+        setInterval(loadActivityLog, 60000);
     </script>
 </body>
 </html>

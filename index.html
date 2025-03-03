@@ -101,6 +101,25 @@
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight * 0.6);
         });
+
+        // Fetch and display the last 10 activities from the log file
+        fetch('activity_log.csv?v=2.0')
+            .then(response => response.text())
+            .then(data => {
+                const lines = data.trim().split('\n').filter(line => line.length > 0);
+                const lastTenLines = lines.slice(-10).reverse();
+                const activityList = document.getElementById('activity-list');
+                activityList.innerHTML = '';
+                lastTenLines.forEach(line => {
+                    const [timestamp, activity] = line.split(',');
+                    const listItem = document.createElement('li');
+                    listItem.textContent = `${timestamp.trim()}: ${activity.trim()}`;
+                    activityList.appendChild(listItem);
+                });
+            })
+            .catch(error => {
+                console.error('Error loading activity log:', error);
+            });
     </script>
 </body>
 </html>
